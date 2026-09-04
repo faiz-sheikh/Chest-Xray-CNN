@@ -4,6 +4,7 @@ import torch.nn as nn
 from torchvision import transforms
 import torch.nn.functional as F
 from PIL import Image
+from huggingface_hub import hf_hub_download  # Added for Hugging Face Hub support
 
 # 1. Reconstructed model architecture matching your state_dict keys
 class PneumoniaCNN(nn.Module):
@@ -27,11 +28,20 @@ class PneumoniaCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-# 2. Load the trained PyTorch model safely using cache
+# 2. Load the trained PyTorch model safely using cache from Hugging Face
 @st.cache_resource
 def load_pytorch_model():
     model = PneumoniaCNN() 
-    model.load_state_dict(torch.load("chest_xray_cnn_model.pth", map_location="cpu"))
+    
+    # Downloads model from HF Hub (cached locally automatically by huggingface_hub)
+    # TODO: Replace "your-username/your-repo-name" with your actual HF repo ID
+    # Note: If your repo is private, add: token=st.secrets["HF_TOKEN"] inside hf_hub_download
+    model_path = hf_hub_download(
+        repo_id="your-username/your-repo-name", 
+        filename="chest_xray_cnn_model.pth"
+    )
+    
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()  
     return model
 
@@ -96,4 +106,3 @@ if uploaded_file is not None:
         st.error(f"Prediction: {predicted_label}")
 
     st.write(f"Confidence: {confidence:.2f}%")
-
