@@ -4,7 +4,7 @@ import torch.nn as nn
 from torchvision import transforms
 import torch.nn.functional as F
 from PIL import Image
-from huggingface_hub import hf_hub_download  # Added for Hugging Face Hub support
+from huggingface_hub import hf_hub_download
 
 # 1. Reconstructed model architecture matching your state_dict keys
 class PneumoniaCNN(nn.Module):
@@ -33,12 +33,12 @@ class PneumoniaCNN(nn.Module):
 def load_pytorch_model():
     model = PneumoniaCNN() 
     
-    # Downloads model from HF Hub (cached locally automatically by huggingface_hub)
-    # TODO: Replace "your-username/your-repo-name" with your actual HF repo ID
-    # Note: If your repo is private, add: token=st.secrets["HF_TOKEN"] inside hf_hub_download
+    # Securely fetches the model weights from your Hugging Face space/repo
+    # CRITICAL: Replace "your-username/your-repo-name" with your real HF repo ID!
     model_path = hf_hub_download(
-        repo_id="your-username/your-repo-name", 
-        filename="chest_xray_cnn_model.pth"
+        repo_id="faiz4320/cnn-model", 
+        filename="chest_xray_cnn_model.pth",
+        token=st.secrets["HF_TOKEN"]  # Reads the token you added in Streamlit Secrets
     )
     
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
@@ -62,11 +62,11 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
 
-    # FIXED: Replaced use_container_width=True with width="stretch"
+    # Display the uploaded file
     st.image(
         image,
         caption="Uploaded Chest X-Ray",
-        width="stretch"
+        use_container_width=True
     )
 
     # 5. Define PyTorch transform pipeline
